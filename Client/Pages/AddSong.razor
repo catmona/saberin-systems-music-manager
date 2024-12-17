@@ -29,13 +29,15 @@
             <InputText @bind-Value="newSong.Genre" class="mt-1 block w-full p-2 border rounded" />
         </div>
 
-        <div class="mb-4">
-            <label class="block text-gray-200">Album Art</label>
-            <InputFile OnChange="HandleFileChange" class="mt-1 block w-full p-2 border rounded" />
+        <div class="mb-4"> 
+            <label class="block text-gray-200">Album Art</label> 
+            <InputFile OnChange="HandleFileChange" class="mt-1 block w-full p-2 border rounded text-white-50" /> 
         </div>
+
 
         <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded">Add Song</button>
     </EditForm>
+
 
     @if (message != null)
     {
@@ -97,11 +99,14 @@
     {
         string albumArt64 = await uploadArt(art);
         bool continueUpload = true;
+        string prefix = $"data:{art.ContentType};base64,";
+        // Console.WriteLine(prefix + albumArt64);
 
         if(albumArt64 != "") {
-            var res = await Http.PostAsJsonAsync("api/imgurart", albumArt64);
+            var res = await Http.PostAsJsonAsync("api/art", prefix + albumArt64);
             if (res.IsSuccessStatusCode) {
                 newSong.AlbumArtURL = await res.Content.ReadAsStringAsync();
+                Console.WriteLine(newSong.AlbumArtURL);
             }
             else {
                 message = "Error uploading album art. Please try again.";

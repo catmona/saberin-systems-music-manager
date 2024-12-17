@@ -38,5 +38,28 @@ namespace music_manager_starter.Server.Controllers
 
             return Ok();
         }
+
+        [HttpPost("imgur-art")]
+        public async Task<ActionResult<string>> UploadAlbumArt(string art64)
+        {
+            if (art64 == "" || art64 == null) {
+                return BadRequest("Invalid image.");
+            }
+
+            using var Http = new HttpClient();
+
+            Http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Client-ID", "30463bf70b5e7bf");
+
+            var content = new MultipartFormDataContent {
+                { new StringContent(art64), "image" }
+            };
+
+            var res = await Http.PostAsync("https://api.imgur.com/3/image", content);
+            if (!res.IsSuccessStatusCode) throw new Exception("Imgur API Error: " + res.ReasonPhrase);
+
+            var json = await res.Content.ReadFromJsonAsync<string>();
+            Console.WriteLine(json);
+            return null;
+        }
     }
 }
