@@ -10,7 +10,7 @@
         <ValidationSummary />
 
         <div class="mb-4">
-            <label class="block text-gray-200">Title</label>
+            <label class="block text-gray-200">Title </label>
             <InputText @bind-Value="newSong.Title" class="mt-1 block w-full p-2 border rounded" />
         </div>
 
@@ -29,6 +29,11 @@
             <InputText @bind-Value="newSong.Genre" class="mt-1 block w-full p-2 border rounded" />
         </div>
 
+        <div class="mb-4">
+            <label class="block text-gray-200">Album Art</label>
+            <InputFile OnChange="HandleFileChange" class="mt-1 block w-full p-2 border rounded" />
+        </div>
+
         <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded">Add Song</button>
     </EditForm>
 
@@ -41,9 +46,71 @@
 @code {
     private Song newSong = new Song();
     private string message;
+    IBrowserFile art;
+
+    /*
+    * I opted to use an API-based solution for handling album art. My first thought when tackling this problem was that uploading
+    * and storing the file on the server would be simplest, but I know that this is not a scalable solution and in a production environment 
+    * could lead to security concerns. My thinking then was that this isn't ever actually going to be used so going with a cloud-based 
+    * method of handling images feels a bit overkill. To balance simplicity while showing how I might handle the solution in production, 
+    * I opted for using the imgur API to upload files and store the URL as a string on the backend. Since I don't want to store the API key 
+    * on the client, I upload the art as a base64 string and then upload it to imgur on the server.
+    */
+    private void HandleFileChange(InputFileChangeEventArgs e) {
+        art = e.File;
+    }
+
+    //https://stackoverflow.com/questions/71578866/problem-converting-image-to-base64-in-blazor-server
+    public static byte[] GetBytes(Stream stream) {
+        var bytes = new byte[stream.Length];
+
+        stream.Seek(0, SeekOrigin.Begin);
+        stream.ReadAsync(bytes, 0, bytes.Length);
+        stream.Dispose();
+
+        return bytes;
+    }
+
+    private async Task<string> uploadArt(IBrowserFile art) {
+        string base64String = "";
+
+        if(art == null)
+            return "";
+
+        //convert to base64 
+        try {
+            await using MemoryStream fs = new MemoryStream();
+            await art.OpenReadStream(maxAllowedSize: 1048576).CopyToAsync(fs);
+            byte[] someBytes = GetBytes(fs);
+            base64String = Convert.ToBase64String(someBytes, 0, someBytes.Length);
+            System.Diagnostics.Debug.Print("Image 64: " + base64String + "\n");
+
+        } catch (Exception e) {
+            System.Diagnostics.Debug.Print("ERROR: " + e.Message + "\n");
+        }
+
+        return base64String;
+    }
+
 
     private async Task HandleValidSubmit()
     {
+        string albumArt64 = await uploadArt(art);
+        bool continueUpload = true;
+
+        if(albumArt64 != "") {
+            var res = await Http.PostAsJsonAsync("api/imgurart", albumArt64);
+            if (res.IsSuccessStatusCode) {
+                newSong.AlbumArtURL = await res.Content.ReadAsStringAsync();
+            }
+            else {
+                message = "Error uploading album art. Please try again.";
+                continueUpload = false;
+            }
+        }
+
+        if (continueUpload == false) return;
+
         var response = await Http.PostAsJsonAsync("api/songs", newSong);
         if (response.IsSuccessStatusCode)
         {
