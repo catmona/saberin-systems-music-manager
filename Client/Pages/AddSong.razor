@@ -105,8 +105,8 @@
         if(albumArt64 != "") {
             var res = await Http.PostAsJsonAsync("api/art", prefix + albumArt64);
             if (res.IsSuccessStatusCode) {
-                newSong.AlbumArtURL = await res.Content.ReadAsStringAsync();
-                Console.WriteLine(newSong.AlbumArtURL);
+                newSong.Url = await res.Content.ReadAsStringAsync();
+                Console.WriteLine(newSong.Url);
             }
             else {
                 message = "Error uploading album art. Please try again.";
