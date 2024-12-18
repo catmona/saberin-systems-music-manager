@@ -5,31 +5,65 @@
 
 @code {
     private List<Song> songs;
+    private String selectedUrl = "dalle.webp";
+    private bool isHovering = false;
+    private Song selectedSong = null;
 
     protected override async Task OnInitializedAsync()
     {
         songs = await Http.GetFromJsonAsync<List<Song>>("api/songs");
     }
+
+    private void HandleHover(Song current) {
+        selectedUrl = current.Url == "" ? "dalle.webp" : current.Url;
+        selectedSong = current;
+        isHovering = true;
+    }
+
+    private void HandleHoverLeave() {
+        isHovering = false;
+        selectedSong = null;
+    }
 }
 
-<div class="p-0 min-h-screen bg-pattern flex flex-col items-center justify-center">
-    <h2 class="text-3xl font-bold text-white mb-8 text-center">Song Library</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-        @if (songs != null && songs.Count > 0)
-        {
-            @foreach (var song in songs)
+<div class="p-0 min-h-screen bg-pattern flex flex-col items-center justify-center relative">
+    <img src="@selectedUrl" class="absolute inset-0 object-cover w-full h-full opacity-0 pointer-events-none opacity-0 dim transition-opacity duration-300 ease-in-out @(isHovering ? "opacity-75" : "")" />
+    <div class="relative z-5">
+        <h2 class="text-3xl font-bold text-white mb-8 text-center">Song Library</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+            @if (songs != null && songs.Count > 0)
             {
-                <div class="glass p-6 border border-gray-300 rounded-lg text-white transition-transform transform hover:scale-105 hover:shadow-xl cursor-pointer">
-                    <h3 class="text-xl font-semibold mb-2">@song.Title</h3>
-                    <p class="text-md">Artist: <span class="font-light">@song.Artist</span></p>
+                @foreach (var song in songs)
+                {
+                    <div @onmouseover="() => HandleHover(song)" @onmouseleave="HandleHoverLeave" class="border border-gray-300 rounded-lg  transition-transform transform hover:scale-105 hover:shadow-xl cursor-pointer relative overflow-hidden">
+                        @if (song.Url != "")
+                        {
+                            <img alt="" src="@song.Url" class="absolute inset-0 object-cover w-full h-full opacity-75 dim" />
+                        }
+                        <div class="relative z-10 p-6 text-white h-full transition-all duration-300 ease-in-out @(isHovering && selectedSong == song ? "bg-dark" : "")">
+                            <h3 class="text-xl font-semibold mb-2">@song.Title</h3>
+                            <span class="font-light text-sm text-gray-200">@song.Artist</span>
+                            <div class="flex mt-1 flex-col gap-1 overflow-hidden h-100 max-h-0 transition-all duration-300 ease-in-out @(isHovering && selectedSong == song ? "max-h-200" : "")">
+                                <div class="flex flex-row">
+                                    <img src="icon-album.png" class="w-6 h-6 mr-3 icon"/>
+                                    <span class="font-light text-sm text-gray-200">@song.Album</span>
+                                </div>
 
-                </div>
+                                <div class="flex flex-row">
+                                    <img src="icon-genre.png" class="w-6 h-6 mr-3 icon" />
+                                    <span class="font-light text-sm text-gray-200">@song.Genre</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                }
             }
-        }
-        else
-        {
-            <div class="col-span-1 text-center text-gray-400">No songs found.</div>
-        }
+            else
+            {
+                <div class="col-span-1 text-center text-gray-400">No songs found.</div>
+            }
+        </div>
     </div>
 </div>
 
@@ -41,7 +75,17 @@
         font-family: 'Rajdhani', sans-serif;
     }
 
- 
+    .icon {
+        filter: invert(1) brightness(2);
+    }
+
+    .max-h-0 {
+        max-height: 0px;
+    }
+
+    .max-h-200 {
+        max-height: 200px;
+    }
 
     .glass {
         background: rgba(255, 255, 255, 0.1);
