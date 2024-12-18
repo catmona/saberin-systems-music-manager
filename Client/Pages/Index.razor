@@ -41,17 +41,17 @@
                             <img alt="" src="@song.Url" class="absolute inset-0 object-cover w-full h-full opacity-75 dim" />
                         }
                         <div class="relative z-10 p-6 text-white h-full transition-all duration-300 ease-in-out @(isHovering && selectedSong == song ? "bg-dark" : "")">
-                            <h3 class="text-xl font-semibold mb-2">@song.Title</h3>
-                            <span class="font-light text-sm text-gray-200">@song.Artist</span>
+                            <h3 class="text-xl text-shadow font-semibold mb-2">@song.Title</h3>
+                            <span class="font-light text-sm text-shadow text-gray-200">@song.Artist</span>
                             <div class="flex mt-1 flex-col gap-1 overflow-hidden h-100 max-h-0 transition-all duration-300 ease-in-out @(isHovering && selectedSong == song ? "max-h-200" : "")">
-                                <div class="flex flex-row">
+                                <div class="flex flex-row align-baseline">
                                     <img src="icon-album.png" class="w-6 h-6 mr-3 icon"/>
-                                    <span class="font-light text-sm text-gray-200">@song.Album</span>
+                                    <span class="font-light text-sm text-shadow text-gray-200">@song.Album</span>
                                 </div>
 
-                                <div class="flex flex-row">
+                                <div class="flex flex-row align-baseline">
                                     <img src="icon-genre.png" class="w-6 h-6 mr-3 icon" />
-                                    <span class="font-light text-sm text-gray-200">@song.Genre</span>
+                                    <span class="font-light text-sm text-shadow text-gray-200">@song.Genre</span>
                                 </div>
                             </div>
                         </div>
@@ -85,6 +85,10 @@
 
     .max-h-200 {
         max-height: 200px;
+    }
+
+    .text-shadow {
+        text-shadow: 1px 1px 2px black;
     }
 
     .glass {
