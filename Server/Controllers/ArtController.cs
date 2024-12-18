@@ -1,5 +1,7 @@
 ﻿using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using music_manager_starter.Data;
 using static System.Net.WebRequestMethods;
 
 
@@ -9,22 +11,32 @@ namespace music_manager_starter.Server.Controllers
     [ApiController]
     public class ArtController : ControllerBase
     {
+        private readonly ILogger<ArtController> _logger;
+
+        public ArtController(ILogger<ArtController> logger)
+        {
+            _logger = logger;
+        }
+
 
         [HttpPost]
         public async Task<ActionResult<string>> UploadAlbumArt([FromBody]string art64)
         {
-            Console.WriteLine(art64);
+            _logger.LogInformation("Upload album art request received");
+            _logger.LogInformation(art64);
             if (art64 == "" || art64 == null) {
+                _logger.LogInformation("Invalid image supplied");
                 return BadRequest("Invalid image.");
             }
 
 
             try {
                 var url = await uploadImgur(art64.Substring(art64.IndexOf(",") + 1));
-                Console.WriteLine(url);
+                _logger.LogInformation("Upload successful: " + url);
                 return Ok(url);
             } 
             catch (Exception e) {
+                _logger.LogInformation("Imgur API Upload Failed: " + e);
                 return BadRequest("Image upload failed");
             }
 

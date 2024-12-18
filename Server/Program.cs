@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using music_manager_starter.Data;
+using Serilog;
 using System.Security.AccessControl;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,7 +10,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<DataDbContext>(options => options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
 
+// Serilog Logging
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .CreateLogger();
 
+
+builder.Host.UseSerilog();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
